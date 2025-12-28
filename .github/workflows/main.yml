@@ -1,0 +1,24 @@
+name: Vigilante_Eterno_GO2025
+on:
+  schedule:
+    # Este comando faz o robô checar seu sinal nos dias 1 e 15 de cada mês
+    - cron: '0 12 1,15 * *'
+  workflow_dispatch: # Permite que você teste manualmente a qualquer hora
+
+jobs:
+  run-vigilante:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Código
+        uses: actions/checkout@v3
+
+      - name: Configurar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Executar Monitor
+        env:
+          EMAIL_USER: ${{ secrets.EMAIL_USER }}
+          EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
+        run: python monitor.py
