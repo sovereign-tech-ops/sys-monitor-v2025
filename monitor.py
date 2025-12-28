@@ -6,29 +6,21 @@ from email.mime.multipart import MIMEMultipart
 from datetime import datetime, timedelta
 
 # --- CONFIGURAÇÕES DO PROTOCOLO ---
-DIAS_LIMITE = 14  # 2 semanas para o Dead Man's Switch
+DIAS_LIMITE = 14  
 ARQUIVO_ALVO = "index.html"
 ARQUIVO_LOG = "last_seen.txt"
 
-# --- TRAVA DE SEGURANÇA (HASH) ---
-# Gere seu hash no terminal com: powershell -Command "(Get-FileHash index.html -Algorithm SHA256).Hash.ToLower()"
-# E cole o resultado entre as aspas abaixo:
+# --- TRAVA DE SEGURANÇA (HASH REAL DO SEU REPOSITÓRIO) ---
 HASH_ORIGINAL = "4719a103f4bd9e1465718e6a0ada06cd74033e13c3404a006a0e1bb79c5b44c2" 
 
-# --- DESTINATÁRIOS (EIXO GO/SP + MONITORAMENTO) ---
+# --- DESTINATÁRIOS (CONFIGURADO PARA TESTE SEGURO) ---
 DESTINATARIOS = [
-    "corregedoria@pm.go.gov.br",           # Corregedoria PMGO
-    "caop.controleexterno@mpgo.mp.br",      # MPGO Atividade Policial
-    "direitoshumanos@mpgo.mp.br",           # MPGO Direitos Humanos
-    "corregedoria@policiamilitar.sp.gov.br",# Corregedoria PMESP
-    "ouvidoria@ouvidoria-policia.sp.gov.br",# Ouvidoria Polícias SP
-    "pcd@mpf.mp.br"                         # MP Federal (Proteção PCD)
+    "deusefielweb2001@gmail.com"
 ]
 
 def disparar_protocolo(motivo):
     print(f"⚠️ DISPARANDO PROTOCOLO: {motivo}")
     
-    # Pega as credenciais guardadas no cofre do GitHub Actions
     user = os.getenv('EMAIL_USER')
     password = os.getenv('EMAIL_PASS')
 
@@ -39,19 +31,18 @@ def disparar_protocolo(motivo):
     msg = MIMEMultipart()
     msg['From'] = user
     msg['To'] = ", ".join(DESTINATARIOS)
-    msg['Subject'] = f"🚨 EMERGÊNCIA: PROTOCOLO GO-2025 ATIVADO ({motivo})"
+    msg['Subject'] = f"🚨 TESTE DE EMERGÊNCIA: PROTOCOLO GO-2025 ({motivo})"
 
     corpo = f"""
-    ALERTA DE SEGURANÇA DIGITAL - REF: GO-2025
-    Este é um disparo automático devido a: {motivo}.
+    ESTE É UM TESTE DO SISTEMA DE SEGURANÇA DIGITAL - REF: GO-2025
+    
+    O gatilho foi ativado por: {motivo}.
+    
+    Se este e-mail chegou, a conexão entre o GitHub e o seu Gmail está 100% OPERACIONAL.
+    O sinal de integridade de FELIPE DA SILVA CAMPANHA DANTAS foi simulado.
 
-    O sinal de integridade de FELIPE DA SILVA CAMPANHA DANTAS (PCD - CID F20.8) foi interrompido.
-    Este sistema monitora casos de Abuso de Autoridade e Operações Fantasmas.
-
-    DOSSIÊ COMPLETO E PROVAS:
+    LINK DO DOSSIÊ:
     https://webnice-cloud.github.io/ahaahaha/
-
-    Solicita-se intervenção dos órgãos competentes de GO e SP para garantir a integridade do autor.
     """
     msg.attach(MIMEText(corpo, 'plain'))
 
@@ -61,27 +52,27 @@ def disparar_protocolo(motivo):
         server.login(user, password)
         server.sendmail(user, DESTINATARIOS, msg.as_string())
         server.quit()
-        print("✅ E-mails de contingência enviados com sucesso.")
+        print(f"✅ E-mail de teste enviado para {DESTINATARIOS}")
     except Exception as e:
         print(f"❌ Falha no disparo: {e}")
 
 def verificar_integridade():
-    # 1. Verifica se o arquivo foi mexido (Sabotagem)
+    # 1. Verifica sabotagem
     sha256 = hashlib.sha256(open(ARQUIVO_ALVO, 'rb').read()).hexdigest()
     if sha256 != HASH_ORIGINAL:
-        disparar_protocolo("VIOLAÇÃO DE INTEGRIDADE (TENTATIVA DE SABOTAGEM)")
+        disparar_protocolo("SIMULAÇÃO DE SABOTAGEM (HASH MISMATCH)")
         return True
 
-    # 2. Verifica o tempo desde o último sinal (Dead Man's Switch)
+    # 2. Verifica tempo (Dead Man's Switch)
     with open(ARQUIVO_LOG, 'r') as f:
         data_str = f.read().strip()
         ultima_vez = datetime.strptime(data_str, "%Y-%m-%d")
     
     if datetime.now() - ultima_vez > timedelta(days=DIAS_LIMITE):
-        disparar_protocolo("AUSÊNCIA DE SINAL (SIGNAL LOSS)")
+        disparar_protocolo("SIMULAÇÃO DE AUSÊNCIA DE SINAL")
         return True
     
-    print("✓ Sistema íntegro. Próxima verificação em 48 horas.")
+    print("✓ Sistema íntegro. Nenhuma regra de disparo foi atingida.")
     return False
 
 if __name__ == "__main__":
